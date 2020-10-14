@@ -151,9 +151,10 @@ impl core::ActionParser for TicTacToeParser {
 
 impl playground::PlaygroundUtils for TicTacToe {
     fn strategies(&self) -> Vec<Box<dyn core::Strategy<Self>>> {
-        return vec![{
-            Box::new(strategy::HumanStrategy { parser: TicTacToeParser {} })
-        }];
+        return vec![
+            Box::new(strategy::HumanStrategy { parser: TicTacToeParser {} }),
+            Box::new(strategy::RandomStrategy {})
+        ];
     }
 
     fn serialize_state(&self, state: &TicTacToeState) -> String {

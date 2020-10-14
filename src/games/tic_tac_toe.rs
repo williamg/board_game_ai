@@ -1,7 +1,9 @@
 use std::io;
 use std::fmt;
 
-use crate::game;
+use crate::core;
+use crate::playground;
+use crate::strategy;
 
 pub struct TicTacToe {
 }
@@ -26,7 +28,7 @@ impl fmt::Display for TicTacToeCell {
 #[derive(Clone)]
 pub struct TicTacToeState {
     pub board: [TicTacToeCell; 9],
-    pub player: game::Player
+    pub player: core::Player
 }
 
 #[derive(PartialEq, Eq)]
@@ -43,21 +45,24 @@ impl TicTacToe {
     }
 }
 
-
-impl game::Game for TicTacToe {
+impl core::Game for TicTacToe {
     type State = TicTacToeState;
     type Action = TicTacToeAction;
+
+    fn name(&self) -> String {
+        return "Tic-Tac-Toe".to_string();
+    }
 
     fn init(&self) -> Self::State {
         let state = Self::State {
             board: [TicTacToeCell::Empty; 9],
-            player: game::Player::Player1
+            player: core::Player::Player1
         };
 
         return state;
     }
 
-    fn player(&self, state: &Self::State) -> game::Player {
+    fn player(&self, state: &Self::State) -> core::Player {
         return state.player.clone();
     }
 
@@ -74,17 +79,17 @@ impl game::Game for TicTacToe {
     }
 
     fn play(&self, action: &Self::Action, state: &Self::State) -> Self::State {
-        let val = if state.player == game::Player::Player1
+        let val = if state.player == core::Player::Player1
             { TicTacToeCell::X } else { TicTacToeCell::O };
         let mut new_state = state.clone();
         new_state.board[action.cell as usize] = val;
-        new_state.player = if state.player == game::Player::Player1
-            { game::Player::Player2 } else { game::Player::Player1 };
+        new_state.player = if state.player == core::Player::Player1
+            { core::Player::Player2 } else { core::Player::Player1 };
 
         return new_state;
     }
 
-    fn status(&self, state: &Self::State) -> game::GameStatus {
+    fn status(&self, state: &Self::State) -> core::GameStatus {
         // Check for wins for either player
         let wins = [
             [0, 1, 2],
@@ -103,8 +108,8 @@ impl game::Game for TicTacToe {
             if state.board[win[1]] == v0 && state.board[win[2]] == v0
             {
                 match v0 {
-                    TicTacToeCell::X => return game::GameStatus::Player1Win,
-                    TicTacToeCell::O => return game::GameStatus::Player2Win,
+                    TicTacToeCell::X => return core::GameStatus::Player1Win,
+                    TicTacToeCell::O => return core::GameStatus::Player2Win,
                     TicTacToeCell::Empty => ()
                 }
             }
@@ -121,14 +126,16 @@ impl game::Game for TicTacToe {
         }
 
         return if draw
-            { game::GameStatus::Draw } else { game::GameStatus::InProgress };
+            { core::GameStatus::Draw } else { core::GameStatus::InProgress };
     }
 }
 
-impl game::ConsoleUI for TicTacToe {
-    type Game = Self;
+pub struct TicTacToeParser {}
 
-    fn read_action(&self) -> <Self::Game as game::Game>::Action {
+impl core::ActionParser for TicTacToeParser {
+    type Game = TicTacToe;
+
+    fn read_action(&self) -> <TicTacToe as core::Game>::Action {
         println!("Enter cell [0, 9]:");
 
         let mut cell_str = String::new();
@@ -139,6 +146,14 @@ impl game::ConsoleUI for TicTacToe {
         let cell_idx: u8 = cell_str.trim().parse().expect("Expected number");
 
         return TicTacToeAction { cell: cell_idx };
+    }
+}
+
+impl playground::PlaygroundUtils for TicTacToe {
+    fn strategies(&self) -> Vec<Box<dyn core::Strategy<Self>>> {
+        return vec![{
+            Box::new(strategy::HumanStrategy { parser: TicTacToeParser {} })
+        }];
     }
 
     fn serialize_state(&self, state: &TicTacToeState) -> String {
@@ -154,7 +169,6 @@ impl game::ConsoleUI for TicTacToe {
             self.cell_to_str(state, 7),
             self.cell_to_str(state, 8))
     }
-
 }
 
 

@@ -5,7 +5,10 @@ use board_game_ai::playground;
 use board_game_ai::games;
 
 fn games() -> Vec<Box<dyn playground::PlaygroundGame>> {
-    return vec!({ Box::new(games::TicTacToe {}) });
+    return vec![
+        Box::new(games::TicTacToe {}),
+        Box::new(games::Chess {})
+    ];
 }
 
 fn select_game() -> Box<dyn playground::PlaygroundGame> {

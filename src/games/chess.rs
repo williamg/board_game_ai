@@ -74,6 +74,112 @@ impl core::Game for Chess {
     }
 }
 
+pub fn action_from_string(string: &str) -> Option<ChessAction> {
+    let bytes = string.as_bytes();
+
+    if bytes.len() < 4 || bytes.len() > 5 {
+        return None;
+    }
+
+    let src_col = bytes[0];
+    let src_row = bytes[1];
+    let dst_col = bytes[2];
+    let dst_row = bytes[3];
+
+    fn to_square(col: u8, row: u8) -> Option<Square> {
+        match (col as char, row as char) {
+            ('a', '1') => Some(Square::A1),
+            ('a', '2') => Some(Square::A2),
+            ('a', '3') => Some(Square::A3),
+            ('a', '4') => Some(Square::A4),
+            ('a', '5') => Some(Square::A5),
+            ('a', '6') => Some(Square::A6),
+            ('a', '7') => Some(Square::A7),
+            ('a', '8') => Some(Square::A8),
+            ('b', '1') => Some(Square::B1),
+            ('b', '2') => Some(Square::B2),
+            ('b', '3') => Some(Square::B3),
+            ('b', '4') => Some(Square::B4),
+            ('b', '5') => Some(Square::B5),
+            ('b', '6') => Some(Square::B6),
+            ('b', '7') => Some(Square::B7),
+            ('b', '8') => Some(Square::B8),
+            ('c', '1') => Some(Square::C1),
+            ('c', '2') => Some(Square::C2),
+            ('c', '3') => Some(Square::C3),
+            ('c', '4') => Some(Square::C4),
+            ('c', '5') => Some(Square::C5),
+            ('c', '6') => Some(Square::C6),
+            ('c', '7') => Some(Square::C7),
+            ('c', '8') => Some(Square::C8),
+            ('d', '1') => Some(Square::D1),
+            ('d', '2') => Some(Square::D2),
+            ('d', '3') => Some(Square::D3),
+            ('d', '4') => Some(Square::D4),
+            ('d', '5') => Some(Square::D5),
+            ('d', '6') => Some(Square::D6),
+            ('d', '7') => Some(Square::D7),
+            ('d', '8') => Some(Square::D8),
+            ('e', '1') => Some(Square::E1),
+            ('e', '2') => Some(Square::E2),
+            ('e', '3') => Some(Square::E3),
+            ('e', '4') => Some(Square::E4),
+            ('e', '5') => Some(Square::E5),
+            ('e', '6') => Some(Square::E6),
+            ('e', '7') => Some(Square::E7),
+            ('e', '8') => Some(Square::E8),
+            ('f', '1') => Some(Square::F1),
+            ('f', '2') => Some(Square::F2),
+            ('f', '3') => Some(Square::F3),
+            ('f', '4') => Some(Square::F4),
+            ('f', '5') => Some(Square::F5),
+            ('f', '6') => Some(Square::F6),
+            ('f', '7') => Some(Square::F7),
+            ('f', '8') => Some(Square::F8),
+            ('g', '1') => Some(Square::G1),
+            ('g', '2') => Some(Square::G2),
+            ('g', '3') => Some(Square::G3),
+            ('g', '4') => Some(Square::G4),
+            ('g', '5') => Some(Square::G5),
+            ('g', '6') => Some(Square::G6),
+            ('g', '7') => Some(Square::G7),
+            ('g', '8') => Some(Square::G8),
+            ('h', '1') => Some(Square::H1),
+            ('h', '2') => Some(Square::H2),
+            ('h', '3') => Some(Square::H3),
+            ('h', '4') => Some(Square::H4),
+            ('h', '5') => Some(Square::H5),
+            ('h', '6') => Some(Square::H6),
+            ('h', '7') => Some(Square::H7),
+            ('h', '8') => Some(Square::H8),
+            _ => None
+        }
+    }
+
+    let src_square = to_square(src_col, src_row);
+    let dst_square = to_square(dst_col, dst_row);
+
+    if src_square == None || dst_square == None {
+        return None;
+    }
+
+    let mut promo = None;
+
+    if bytes.len() == 5 {
+        promo = match bytes[4] as char {
+           'K' => Some(Piece::King),
+           'Q' => Some(Piece::Queen),
+           'R' => Some(Piece::Rook),
+           'N' => Some(Piece::Knight),
+            _ => None
+        }
+    }
+
+    return Some(ChessAction {
+        chess_move: ChessMove::new(src_square.unwrap(), dst_square.unwrap(), promo)
+    });
+}
+
 pub struct ChessParser {}
 
 impl core::ActionParser for ChessParser {
@@ -88,110 +194,14 @@ impl core::ActionParser for ChessParser {
                 .read_line (&mut move_str)
                 .expect("Failed to read line");
 
-            let bytes = move_str.into_bytes();
+            let action = action_from_string(&move_str);
 
-            if bytes.len() < 4 || bytes.len() > 5 {
+            if action == None {
                 continue;
             }
 
-            let src_col = bytes[0];
-            let src_row = bytes[1];
-            let dst_col = bytes[2];
-            let dst_row = bytes[3];
-
-            fn to_square(col: u8, row: u8) -> Option<Square> {
-                match (col as char, row as char) {
-                    ('a', '1') => Some(Square::A1),
-                    ('a', '2') => Some(Square::A2),
-                    ('a', '3') => Some(Square::A3),
-                    ('a', '4') => Some(Square::A4),
-                    ('a', '5') => Some(Square::A5),
-                    ('a', '6') => Some(Square::A6),
-                    ('a', '7') => Some(Square::A7),
-                    ('a', '8') => Some(Square::A8),
-                    ('b', '1') => Some(Square::B1),
-                    ('b', '2') => Some(Square::B2),
-                    ('b', '3') => Some(Square::B3),
-                    ('b', '4') => Some(Square::B4),
-                    ('b', '5') => Some(Square::B5),
-                    ('b', '6') => Some(Square::B6),
-                    ('b', '7') => Some(Square::B7),
-                    ('b', '8') => Some(Square::B8),
-                    ('c', '1') => Some(Square::C1),
-                    ('c', '2') => Some(Square::C2),
-                    ('c', '3') => Some(Square::C3),
-                    ('c', '4') => Some(Square::C4),
-                    ('c', '5') => Some(Square::C5),
-                    ('c', '6') => Some(Square::C6),
-                    ('c', '7') => Some(Square::C7),
-                    ('c', '8') => Some(Square::C8),
-                    ('d', '1') => Some(Square::D1),
-                    ('d', '2') => Some(Square::D2),
-                    ('d', '3') => Some(Square::D3),
-                    ('d', '4') => Some(Square::D4),
-                    ('d', '5') => Some(Square::D5),
-                    ('d', '6') => Some(Square::D6),
-                    ('d', '7') => Some(Square::D7),
-                    ('d', '8') => Some(Square::D8),
-                    ('e', '1') => Some(Square::E1),
-                    ('e', '2') => Some(Square::E2),
-                    ('e', '3') => Some(Square::E3),
-                    ('e', '4') => Some(Square::E4),
-                    ('e', '5') => Some(Square::E5),
-                    ('e', '6') => Some(Square::E6),
-                    ('e', '7') => Some(Square::E7),
-                    ('e', '8') => Some(Square::E8),
-                    ('f', '1') => Some(Square::F1),
-                    ('f', '2') => Some(Square::F2),
-                    ('f', '3') => Some(Square::F3),
-                    ('f', '4') => Some(Square::F4),
-                    ('f', '5') => Some(Square::F5),
-                    ('f', '6') => Some(Square::F6),
-                    ('f', '7') => Some(Square::F7),
-                    ('f', '8') => Some(Square::F8),
-                    ('g', '1') => Some(Square::G1),
-                    ('g', '2') => Some(Square::G2),
-                    ('g', '3') => Some(Square::G3),
-                    ('g', '4') => Some(Square::G4),
-                    ('g', '5') => Some(Square::G5),
-                    ('g', '6') => Some(Square::G6),
-                    ('g', '7') => Some(Square::G7),
-                    ('g', '8') => Some(Square::G8),
-                    ('h', '1') => Some(Square::H1),
-                    ('h', '2') => Some(Square::H2),
-                    ('h', '3') => Some(Square::H3),
-                    ('h', '4') => Some(Square::H4),
-                    ('h', '5') => Some(Square::H5),
-                    ('h', '6') => Some(Square::H6),
-                    ('h', '7') => Some(Square::H7),
-                    ('h', '8') => Some(Square::H8),
-                    _ => None
-                }
-            }
-
-            let src_square = to_square(src_col, src_row);
-            let dst_square = to_square(dst_col, dst_row);
-
-            if src_square == None || dst_square == None {
-                continue;
-            }
-
-            let mut promo = None;
-
-            if bytes.len() == 5 {
-                promo = match bytes[4] as char {
-                   'K' => Some(Piece::King),
-                   'Q' => Some(Piece::Queen),
-                   'R' => Some(Piece::Rook),
-                   'N' => Some(Piece::Knight),
-                    _ => None
-                }
-            }
-
-            return ChessAction {
-                chess_move: ChessMove::new(src_square.unwrap(), dst_square.unwrap(), promo)
-            };
-        }
+            return action.unwrap();
+        };
     }
 }
 
@@ -199,7 +209,8 @@ impl playground::PlaygroundUtils for Chess {
     fn strategies(&self) -> Vec<Box<dyn core::Strategy<Self>>> {
         return vec![
             Box::new(strategy::HumanStrategy { parser: ChessParser {} }),
-            Box::new(strategy::RandomStrategy {})
+            Box::new(strategy::RandomStrategy {}),
+            Box::new(strategy::UCIStrategy::new())
         ];
     }
 

@@ -1,18 +1,17 @@
-use std::io;
 use std::fmt;
+use std::io;
 
 use crate::core;
 use crate::playground;
 use crate::strategy;
 
-pub struct TicTacToe {
-}
+pub struct TicTacToe {}
 
 #[derive(PartialEq, Eq, Copy, Clone)]
 pub enum TicTacToeCell {
     X,
     O,
-    Empty
+    Empty,
 }
 
 impl fmt::Display for TicTacToeCell {
@@ -20,7 +19,7 @@ impl fmt::Display for TicTacToeCell {
         match self {
             TicTacToeCell::X => write!(f, "X"),
             TicTacToeCell::O => write!(f, "O"),
-            TicTacToeCell::Empty  => write!(f, " ")
+            TicTacToeCell::Empty => write!(f, " "),
         }
     }
 }
@@ -28,19 +27,19 @@ impl fmt::Display for TicTacToeCell {
 #[derive(Clone)]
 pub struct TicTacToeState {
     pub board: [TicTacToeCell; 9],
-    pub player: core::Player
+    pub player: core::Player,
 }
 
 #[derive(PartialEq, Eq)]
 pub struct TicTacToeAction {
-    pub cell: u8
+    pub cell: u8,
 }
 
 impl TicTacToe {
     fn cell_to_str(&self, state: &TicTacToeState, idx: usize) -> String {
         match state.board[idx] {
             TicTacToeCell::Empty => return format!("{}", idx),
-            _ => return format!("{}", state.board[idx])
+            _ => return format!("{}", state.board[idx]),
         }
     }
 }
@@ -56,7 +55,7 @@ impl core::Game for TicTacToe {
     fn init(&self) -> Self::State {
         let state = Self::State {
             board: [TicTacToeCell::Empty; 9],
-            player: core::Player::Player1
+            player: core::Player::Player1,
         };
 
         return state;
@@ -79,12 +78,18 @@ impl core::Game for TicTacToe {
     }
 
     fn play(&self, action: &Self::Action, state: &Self::State) -> Self::State {
-        let val = if state.player == core::Player::Player1
-            { TicTacToeCell::X } else { TicTacToeCell::O };
+        let val = if state.player == core::Player::Player1 {
+            TicTacToeCell::X
+        } else {
+            TicTacToeCell::O
+        };
         let mut new_state = state.clone();
         new_state.board[action.cell as usize] = val;
-        new_state.player = if state.player == core::Player::Player1
-            { core::Player::Player2 } else { core::Player::Player1 };
+        new_state.player = if state.player == core::Player::Player1 {
+            core::Player::Player2
+        } else {
+            core::Player::Player1
+        };
 
         return new_state;
     }
@@ -99,18 +104,17 @@ impl core::Game for TicTacToe {
             [1, 4, 7],
             [2, 5, 8],
             [0, 4, 8],
-            [2, 4, 6]
+            [2, 4, 6],
         ];
 
         for win in wins.iter() {
             let v0 = state.board[win[0]];
 
-            if state.board[win[1]] == v0 && state.board[win[2]] == v0
-            {
+            if state.board[win[1]] == v0 && state.board[win[2]] == v0 {
                 match v0 {
                     TicTacToeCell::X => return core::GameStatus::Player1Win,
                     TicTacToeCell::O => return core::GameStatus::Player2Win,
-                    TicTacToeCell::Empty => ()
+                    TicTacToeCell::Empty => (),
                 }
             }
         }
@@ -120,13 +124,19 @@ impl core::Game for TicTacToe {
         // If there are no empty on the board, then it's a draw
         for val in state.board.iter() {
             match val {
-                TicTacToeCell::Empty => { draw = false; break; },
-                _ => ()
+                TicTacToeCell::Empty => {
+                    draw = false;
+                    break;
+                }
+                _ => (),
             }
         }
 
-        return if draw
-            { core::GameStatus::Draw } else { core::GameStatus::InProgress };
+        return if draw {
+            core::GameStatus::Draw
+        } else {
+            core::GameStatus::InProgress
+        };
     }
 }
 
@@ -152,8 +162,10 @@ impl core::ActionParser for TicTacToeParser {
 impl playground::PlaygroundUtils for TicTacToe {
     fn strategies(&self) -> Vec<Box<dyn core::Strategy<Self>>> {
         return vec![
-            Box::new(strategy::HumanStrategy { parser: TicTacToeParser {} }),
-            Box::new(strategy::RandomStrategy {})
+            Box::new(strategy::HumanStrategy {
+                parser: TicTacToeParser {},
+            }),
+            Box::new(strategy::RandomStrategy {}),
         ];
     }
 
@@ -168,8 +180,7 @@ impl playground::PlaygroundUtils for TicTacToe {
             self.cell_to_str(state, 5),
             self.cell_to_str(state, 6),
             self.cell_to_str(state, 7),
-            self.cell_to_str(state, 8))
+            self.cell_to_str(state, 8)
+        );
     }
 }
-
-

@@ -1,4 +1,4 @@
-use chess::{Board, ChessMove, Color, MoveGen, Square, Piece, BoardStatus};
+use chess::{Board, BoardStatus, ChessMove, Color, MoveGen, Piece, Square};
 
 use crate::core;
 use crate::playground;
@@ -6,18 +6,17 @@ use crate::strategy;
 
 use std::io;
 
-pub struct Chess {
-}
+pub struct Chess {}
 
 #[derive(Clone)]
 pub struct ChessState {
     pub board: Board,
-    pub num_moves: u8
+    pub num_moves: u8,
 }
 
-#[derive(PartialEq,Eq)]
+#[derive(PartialEq, Eq)]
 pub struct ChessAction {
-    pub chess_move: ChessMove
+    pub chess_move: ChessMove,
 }
 
 impl core::Game for Chess {
@@ -31,15 +30,18 @@ impl core::Game for Chess {
     fn init(&self) -> Self::State {
         let state = Self::State {
             board: Board::default(),
-            num_moves: 0
+            num_moves: 0,
         };
 
         return state;
     }
 
     fn player(&self, state: &Self::State) -> core::Player {
-        return if state.board.side_to_move () == Color::White
-            { core::Player::Player1 } else { core::Player::Player2 };
+        return if state.board.side_to_move() == Color::White {
+            core::Player::Player1
+        } else {
+            core::Player::Player2
+        };
     }
 
     fn actions(&self, state: &Self::State) -> Vec<Self::Action> {
@@ -48,7 +50,9 @@ impl core::Game for Chess {
         let mut actions: Vec<Self::Action> = Vec::new();
 
         for chess_move in movegen {
-            actions.push (ChessAction { chess_move: chess_move });
+            actions.push(ChessAction {
+                chess_move: chess_move,
+            });
         }
 
         return actions;
@@ -59,18 +63,28 @@ impl core::Game for Chess {
 
         return ChessState {
             board: new_board,
-            num_moves: state.num_moves + (self.player(state) == core::Player::Player2) as u8
+            num_moves: state.num_moves + (self.player(state) == core::Player::Player2) as u8,
         };
     }
 
     fn status(&self, state: &Self::State) -> core::GameStatus {
         return match state.board.status() {
-            BoardStatus::Ongoing => if state.num_moves > 50
-                { core::GameStatus::Draw } else {core::GameStatus::InProgress},
+            BoardStatus::Ongoing => {
+                if state.num_moves > 50 {
+                    core::GameStatus::Draw
+                } else {
+                    core::GameStatus::InProgress
+                }
+            }
             BoardStatus::Stalemate => core::GameStatus::Draw,
-            BoardStatus::Checkmate => if state.board.side_to_move () == Color::White
-            { core::GameStatus::Player2Win } else { core::GameStatus::Player1Win }
-        }
+            BoardStatus::Checkmate => {
+                if state.board.side_to_move() == Color::White {
+                    core::GameStatus::Player2Win
+                } else {
+                    core::GameStatus::Player1Win
+                }
+            }
+        };
     }
 }
 
@@ -152,7 +166,7 @@ pub fn action_from_string(string: &str) -> Option<ChessAction> {
             ('h', '6') => Some(Square::H6),
             ('h', '7') => Some(Square::H7),
             ('h', '8') => Some(Square::H8),
-            _ => None
+            _ => None,
         }
     }
 
@@ -167,16 +181,16 @@ pub fn action_from_string(string: &str) -> Option<ChessAction> {
 
     if bytes.len() == 5 {
         promo = match bytes[4] as char {
-           'K' => Some(Piece::King),
-           'Q' => Some(Piece::Queen),
-           'R' => Some(Piece::Rook),
-           'N' => Some(Piece::Knight),
-            _ => None
+            'K' => Some(Piece::King),
+            'Q' => Some(Piece::Queen),
+            'R' => Some(Piece::Rook),
+            'N' => Some(Piece::Knight),
+            _ => None,
         }
     }
 
     return Some(ChessAction {
-        chess_move: ChessMove::new(src_square.unwrap(), dst_square.unwrap(), promo)
+        chess_move: ChessMove::new(src_square.unwrap(), dst_square.unwrap(), promo),
     });
 }
 
@@ -191,7 +205,7 @@ impl core::ActionParser for ChessParser {
 
             let mut move_str = String::new();
             io::stdin()
-                .read_line (&mut move_str)
+                .read_line(&mut move_str)
                 .expect("Failed to read line");
 
             let action = action_from_string(&move_str);
@@ -201,21 +215,23 @@ impl core::ActionParser for ChessParser {
             }
 
             return action.unwrap();
-        };
+        }
     }
 }
 
 impl playground::PlaygroundUtils for Chess {
     fn strategies(&self) -> Vec<Box<dyn core::Strategy<Self>>> {
         return vec![
-            Box::new(strategy::HumanStrategy { parser: ChessParser {} }),
+            Box::new(strategy::HumanStrategy {
+                parser: ChessParser {},
+            }),
             Box::new(strategy::RandomStrategy {}),
-            Box::new(strategy::UCIStrategy::new())
+            Box::new(strategy::UCIStrategy::new()),
         ];
     }
 
     fn serialize_state(&self, state: &ChessState) -> String {
-        fn piece_string(board: &Board, square: Square) -> String{
+        fn piece_string(board: &Board, square: Square) -> String {
             return match board.piece_on(square) {
                 None => "_".to_string(),
                 Some(p) => {
@@ -229,12 +245,16 @@ impl playground::PlaygroundUtils for Chess {
                     };
 
                     if board.color_on(square).unwrap() == Color::White {
-                        piece_str.to_uppercase() } else { piece_str.to_string() }
+                        piece_str.to_uppercase()
+                    } else {
+                        piece_str.to_string()
+                    }
                 }
             };
         }
 
-        return format!("
+        return format!(
+            "
             a b c d e f g h  \n
           1|{}|{}|{}|{}|{}|{}|{}|{}|1\n
           2|{}|{}|{}|{}|{}|{}|{}|{}|2\n
@@ -245,71 +265,70 @@ impl playground::PlaygroundUtils for Chess {
           7|{}|{}|{}|{}|{}|{}|{}|{}|7\n
           8|{}|{}|{}|{}|{}|{}|{}|{}|8\n
             a b c d e f g h  \n",
-          piece_string(&state.board, Square::A1),
-          piece_string(&state.board, Square::B1),
-          piece_string(&state.board, Square::C1),
-          piece_string(&state.board, Square::D1),
-          piece_string(&state.board, Square::E1),
-          piece_string(&state.board, Square::F1),
-          piece_string(&state.board, Square::G1),
-          piece_string(&state.board, Square::H1),
-          piece_string(&state.board, Square::A2),
-          piece_string(&state.board, Square::B2),
-          piece_string(&state.board, Square::C2),
-          piece_string(&state.board, Square::D2),
-          piece_string(&state.board, Square::E2),
-          piece_string(&state.board, Square::F2),
-          piece_string(&state.board, Square::G2),
-          piece_string(&state.board, Square::H2),
-          piece_string(&state.board, Square::A3),
-          piece_string(&state.board, Square::B3),
-          piece_string(&state.board, Square::C3),
-          piece_string(&state.board, Square::D3),
-          piece_string(&state.board, Square::E3),
-          piece_string(&state.board, Square::F3),
-          piece_string(&state.board, Square::G3),
-          piece_string(&state.board, Square::H3),
-          piece_string(&state.board, Square::A4),
-          piece_string(&state.board, Square::B4),
-          piece_string(&state.board, Square::C4),
-          piece_string(&state.board, Square::D4),
-          piece_string(&state.board, Square::E4),
-          piece_string(&state.board, Square::F4),
-          piece_string(&state.board, Square::G4),
-          piece_string(&state.board, Square::H4),
-          piece_string(&state.board, Square::A5),
-          piece_string(&state.board, Square::B5),
-          piece_string(&state.board, Square::C5),
-          piece_string(&state.board, Square::D5),
-          piece_string(&state.board, Square::E5),
-          piece_string(&state.board, Square::F5),
-          piece_string(&state.board, Square::G5),
-          piece_string(&state.board, Square::H5),
-          piece_string(&state.board, Square::A6),
-          piece_string(&state.board, Square::B6),
-          piece_string(&state.board, Square::C6),
-          piece_string(&state.board, Square::D6),
-          piece_string(&state.board, Square::E6),
-          piece_string(&state.board, Square::F6),
-          piece_string(&state.board, Square::G6),
-          piece_string(&state.board, Square::H6),
-          piece_string(&state.board, Square::A7),
-          piece_string(&state.board, Square::B7),
-          piece_string(&state.board, Square::C7),
-          piece_string(&state.board, Square::D7),
-          piece_string(&state.board, Square::E7),
-          piece_string(&state.board, Square::F7),
-          piece_string(&state.board, Square::G7),
-          piece_string(&state.board, Square::H7),
-          piece_string(&state.board, Square::A8),
-          piece_string(&state.board, Square::B8),
-          piece_string(&state.board, Square::C8),
-          piece_string(&state.board, Square::D8),
-          piece_string(&state.board, Square::E8),
-          piece_string(&state.board, Square::F8),
-          piece_string(&state.board, Square::G8),
-          piece_string(&state.board, Square::H8),
-
+            piece_string(&state.board, Square::A1),
+            piece_string(&state.board, Square::B1),
+            piece_string(&state.board, Square::C1),
+            piece_string(&state.board, Square::D1),
+            piece_string(&state.board, Square::E1),
+            piece_string(&state.board, Square::F1),
+            piece_string(&state.board, Square::G1),
+            piece_string(&state.board, Square::H1),
+            piece_string(&state.board, Square::A2),
+            piece_string(&state.board, Square::B2),
+            piece_string(&state.board, Square::C2),
+            piece_string(&state.board, Square::D2),
+            piece_string(&state.board, Square::E2),
+            piece_string(&state.board, Square::F2),
+            piece_string(&state.board, Square::G2),
+            piece_string(&state.board, Square::H2),
+            piece_string(&state.board, Square::A3),
+            piece_string(&state.board, Square::B3),
+            piece_string(&state.board, Square::C3),
+            piece_string(&state.board, Square::D3),
+            piece_string(&state.board, Square::E3),
+            piece_string(&state.board, Square::F3),
+            piece_string(&state.board, Square::G3),
+            piece_string(&state.board, Square::H3),
+            piece_string(&state.board, Square::A4),
+            piece_string(&state.board, Square::B4),
+            piece_string(&state.board, Square::C4),
+            piece_string(&state.board, Square::D4),
+            piece_string(&state.board, Square::E4),
+            piece_string(&state.board, Square::F4),
+            piece_string(&state.board, Square::G4),
+            piece_string(&state.board, Square::H4),
+            piece_string(&state.board, Square::A5),
+            piece_string(&state.board, Square::B5),
+            piece_string(&state.board, Square::C5),
+            piece_string(&state.board, Square::D5),
+            piece_string(&state.board, Square::E5),
+            piece_string(&state.board, Square::F5),
+            piece_string(&state.board, Square::G5),
+            piece_string(&state.board, Square::H5),
+            piece_string(&state.board, Square::A6),
+            piece_string(&state.board, Square::B6),
+            piece_string(&state.board, Square::C6),
+            piece_string(&state.board, Square::D6),
+            piece_string(&state.board, Square::E6),
+            piece_string(&state.board, Square::F6),
+            piece_string(&state.board, Square::G6),
+            piece_string(&state.board, Square::H6),
+            piece_string(&state.board, Square::A7),
+            piece_string(&state.board, Square::B7),
+            piece_string(&state.board, Square::C7),
+            piece_string(&state.board, Square::D7),
+            piece_string(&state.board, Square::E7),
+            piece_string(&state.board, Square::F7),
+            piece_string(&state.board, Square::G7),
+            piece_string(&state.board, Square::H7),
+            piece_string(&state.board, Square::A8),
+            piece_string(&state.board, Square::B8),
+            piece_string(&state.board, Square::C8),
+            piece_string(&state.board, Square::D8),
+            piece_string(&state.board, Square::E8),
+            piece_string(&state.board, Square::F8),
+            piece_string(&state.board, Square::G8),
+            piece_string(&state.board, Square::H8),
         );
     }
 }

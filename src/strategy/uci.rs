@@ -4,7 +4,7 @@ use crate::games;
 extern crate uci;
 
 pub struct UCIStrategy {
-    engine: uci::Engine
+    engine: uci::Engine,
 }
 
 impl UCIStrategy {
@@ -15,15 +15,16 @@ impl UCIStrategy {
     }
 }
 
-impl core::Strategy<games::Chess> for UCIStrategy
-{
+impl core::Strategy<games::Chess> for UCIStrategy {
     fn name(&self) -> String {
         return "UCI".to_string();
     }
 
     fn select_action(&self, _game: &games::Chess, state: &games::ChessState) -> games::ChessAction {
         let fen = format!("{}", state.board);
-        self.engine.set_position(&fen).expect("Failed to set position");
+        self.engine
+            .set_position(&fen)
+            .expect("Failed to set position");
 
         let bestmove = self.engine.bestmove().expect("Failed to get move");
         return games::action_from_string(&bestmove).unwrap();

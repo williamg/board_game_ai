@@ -1,14 +1,14 @@
-use serde_json::{Value};
+use serde_json::Value;
 
-use crate::core::{Game, Strategy, GameStatus};
-use crate::playground::{PlaygroundUtils, simulate};
+use crate::core::{Game, GameStatus, Strategy};
+use crate::playground::{simulate, PlaygroundUtils};
 
 use std::fmt;
 
 pub struct PlayerStats {
     avg_move_time: u128,
     avg_win_move_count: u64,
-    num_wins: u64
+    num_wins: u64,
 }
 
 impl PlayerStats {
@@ -16,7 +16,7 @@ impl PlayerStats {
         return PlayerStats {
             avg_move_time: 0,
             avg_win_move_count: 0,
-            num_wins: 0
+            num_wins: 0,
         };
     }
 }
@@ -24,7 +24,7 @@ impl PlayerStats {
 pub struct BenchmarkResult {
     match_count: u64,
     p1_stats: PlayerStats,
-    p2_stats: PlayerStats
+    p2_stats: PlayerStats,
 }
 
 impl fmt::Display for BenchmarkResult {
@@ -40,9 +40,10 @@ impl fmt::Display for BenchmarkResult {
     }
 }
 
-
-
-fn select_strategy<T : Game + PlaygroundUtils> (game: &T, name: &str) -> Option<Box<dyn Strategy<T>>> {
+fn select_strategy<T: Game + PlaygroundUtils>(
+    game: &T,
+    name: &str,
+) -> Option<Box<dyn Strategy<T>>> {
     let mut all_strats = game.strategies();
 
     for i in 0..all_strats.len() {
@@ -63,21 +64,21 @@ pub struct Test {
     pub game: Box<dyn BenchmarkGame>,
     pub p1_strat_conf: Value,
     pub p2_strat_conf: Value,
-    pub iterations: u64
+    pub iterations: u64,
 }
 
 impl<T> BenchmarkGame for T
 where
-    T : Game + PlaygroundUtils
+    T: Game + PlaygroundUtils,
 {
     fn run(&self, test: &Test) -> Result<BenchmarkResult, &'static str> {
         let p1_strat = match &test.p1_strat_conf["name"] {
             Value::String(s) => select_strategy(self, &s).expect("No matching strategy"),
-            _ => return Err("name must be a string")
+            _ => return Err("name must be a string"),
         };
         let p2_strat = match &test.p2_strat_conf["name"] {
             Value::String(s) => select_strategy(self, &s).expect("No matching strategy"),
-            _ => return Err("name must be a string")
+            _ => return Err("name must be a string"),
         };
 
         p1_strat.configure(&test.p1_strat_conf);
@@ -92,22 +93,24 @@ where
             let p2_avg_move_time = result.player1_time.as_millis() / result.num_moves as u128;
 
             let i = iter as u128;
-            p1_stats.avg_move_time =
-                ((p1_stats.avg_move_time * i) + p1_avg_move_time) / (i + 1);
-            p2_stats.avg_move_time =
-                ((p2_stats.avg_move_time * i) + p2_avg_move_time) / (i + 1);
+            p1_stats.avg_move_time = ((p1_stats.avg_move_time * i) + p1_avg_move_time) / (i + 1);
+            p2_stats.avg_move_time = ((p2_stats.avg_move_time * i) + p2_avg_move_time) / (i + 1);
 
             match result.status {
                 GameStatus::Player1Win => {
                     let new_win_count = p1_stats.num_wins + 1;
-                    p1_stats.avg_win_move_count =
-                        ((p1_stats.avg_win_move_count * p1_stats.num_wins) + result.num_moves as u64) / new_win_count;
+                    p1_stats.avg_win_move_count = ((p1_stats.avg_win_move_count
+                        * p1_stats.num_wins)
+                        + result.num_moves as u64)
+                        / new_win_count;
                     p1_stats.num_wins = new_win_count;
                 }
                 GameStatus::Player2Win => {
                     let new_win_count = p2_stats.num_wins + 1;
-                    p2_stats.avg_win_move_count =
-                        ((p2_stats.avg_win_move_count * p2_stats.num_wins) + result.num_moves as u64) / new_win_count;
+                    p2_stats.avg_win_move_count = ((p2_stats.avg_win_move_count
+                        * p2_stats.num_wins)
+                        + result.num_moves as u64)
+                        / new_win_count;
                     p2_stats.num_wins = new_win_count;
                 }
                 _ => {}
@@ -117,7 +120,7 @@ where
         return Ok(BenchmarkResult {
             match_count: test.iterations,
             p1_stats: p1_stats,
-            p2_stats: p2_stats
+            p2_stats: p2_stats,
         });
     }
 }

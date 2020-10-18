@@ -5,10 +5,7 @@ use board_game_ai::playground;
 use board_game_ai::games;
 
 fn games() -> Vec<Box<dyn playground::PlaygroundGame>> {
-    return vec![
-        Box::new(games::TicTacToe {}),
-        Box::new(games::Chess {})
-    ];
+    return vec![Box::new(games::TicTacToe {}), Box::new(games::Chess {})];
 }
 
 fn select_game() -> Box<dyn playground::PlaygroundGame> {
@@ -27,8 +24,8 @@ fn select_game() -> Box<dyn playground::PlaygroundGame> {
 
         let mut game_str = String::new();
         io::stdin()
-                .read_line(&mut game_str)
-                .expect("Failed to read line");
+            .read_line(&mut game_str)
+            .expect("Failed to read line");
 
         selected_idx = game_str.trim().parse::<i32>().expect("Expected number") - 1;
     }
@@ -38,7 +35,7 @@ fn select_game() -> Box<dyn playground::PlaygroundGame> {
 
 fn main() {
     let g = select_game();
-    g.start ();
+    g.start();
     /*
 
     loop {
@@ -46,4 +43,3 @@ fn main() {
         play_game(gameConfig);
     }*/
 }
-

@@ -1,6 +1,8 @@
 use std::time;
 use std::fmt;
 
+use serde_json::{Value};
+
 #[derive(PartialEq, Eq, Clone)]
 pub enum Player {
     Player1,
@@ -45,6 +47,7 @@ pub trait Strategy<G: Game> {
         &self,
         game: &G,
         state: &G::State) -> G::Action;
+    fn configure(&self, _conf: &Value) {}
 }
 
 pub struct MatchResult {

@@ -1,0 +1,13 @@
+[
+	{
+		"label": "UCI vs Random",
+		"iterations": 1,
+		"game": "chess",
+		"p1Strat": {
+			"name": "UCI"
+		},
+		"p2Strat": {
+			"name": "Random"
+		}
+	}
+]

@@ -48,45 +48,51 @@ impl<T> PlaygroundGame for T
         println!("Select strategy for player 2");
         let p2_strat = select_strategy(self);
 
-        let mut state = self.init();
-
-        let mut num_moves = 0;
-        let mut player1_time = time::Duration::new(0, 0);
-        let mut player2_time = time::Duration::new(0, 0);
-
-        while self.status (&state) == core::GameStatus::InProgress {
-            println!("{}", self.serialize_state(&state));
-
-            let start = time::Instant::now();
-
-            let action = match self.player(&state) {
-                core::Player::Player1 => {
-                    println!("Player 1's turn...");
-                    let action = p1_strat.select_action(self, &state);
-                    player1_time = player1_time + (start.elapsed());
-                    action
-                },
-                core::Player::Player2 => {
-                    println!("Player 2's turn...");
-                    let action = p2_strat.select_action(self, &state);
-                    player2_time = player1_time + (start.elapsed());
-                    num_moves = num_moves + 1;
-                    action
-                }
-            };
-
-            state = self.play(&action, &state);
-        }
-
-        let result = core::MatchResult {
-            status: self.status(&state),
-            num_moves: num_moves,
-            player1_time: player1_time,
-            player2_time: player2_time
-        };
+        let result = simulate (self, &(*p1_strat), &(*p2_strat), true);
 
         println!("{}", result);
 
         return result;
     }
+}
+
+pub fn simulate<G: core::Game + PlaygroundUtils> (
+    game: &G, p1_strat: &dyn core::Strategy<G>, p2_strat: &dyn core::Strategy<G>,
+    debug: bool) -> core::MatchResult {
+    let mut state = game.init();
+
+    let mut num_moves = 0;
+    let mut player1_time = time::Duration::new(0, 0);
+    let mut player2_time = time::Duration::new(0, 0);
+
+    while game.status (&state) == core::GameStatus::InProgress {
+        if debug { println!("{}", game.serialize_state(&state)); }
+
+        let start = time::Instant::now();
+
+        let action = match game.player(&state) {
+            core::Player::Player1 => {
+                if debug { println!("Player 1's turn..."); }
+                let action = p1_strat.select_action(game, &state);
+                player1_time = player1_time + (start.elapsed());
+                action
+            },
+            core::Player::Player2 => {
+                if debug { println!("Player 2's turn..."); }
+                let action = p2_strat.select_action(game, &state);
+                player2_time = player1_time + (start.elapsed());
+                num_moves = num_moves + 1;
+                action
+            }
+        };
+
+        state = game.play(&action, &state);
+    }
+
+    return core::MatchResult {
+        status: game.status(&state),
+        num_moves: num_moves,
+        player1_time: player1_time,
+        player2_time: player2_time
+    };
 }

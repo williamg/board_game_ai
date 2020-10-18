@@ -1,4 +1,6 @@
 use std::io;
+use std::time;
+
 use crate::core;
 
 pub trait PlaygroundUtils where Self : core::Game {
@@ -48,35 +50,43 @@ impl<T> PlaygroundGame for T
 
         let mut state = self.init();
 
+        let mut num_moves = 0;
+        let mut player1_time = time::Duration::new(0, 0);
+        let mut player2_time = time::Duration::new(0, 0);
+
         while self.status (&state) == core::GameStatus::InProgress {
             println!("{}", self.serialize_state(&state));
+
+            let start = time::Instant::now();
 
             let action = match self.player(&state) {
                 core::Player::Player1 => {
                     println!("Player 1's turn...");
-                    p1_strat.select_action(self, &state)
+                    let action = p1_strat.select_action(self, &state);
+                    player1_time = player1_time + (start.elapsed());
+                    action
                 },
                 core::Player::Player2 => {
                     println!("Player 2's turn...");
-                    p2_strat.select_action(self, &state)
+                    let action = p2_strat.select_action(self, &state);
+                    player2_time = player1_time + (start.elapsed());
+                    num_moves = num_moves + 1;
+                    action
                 }
             };
 
             state = self.play(&action, &state);
         }
 
-        match self.status (&state) {
-            core::GameStatus::Player1Win => println!("Player 1 wins!"),
-            core::GameStatus::Player2Win => println!("Player 2 wins!"),
-            core::GameStatus::Draw => println!("Draw"),
-            core::GameStatus::InProgress => ()
-        }
-
-        println!("{}", self.serialize_state(&state));
-
-        return core::MatchResult {
+        let result = core::MatchResult {
             status: self.status(&state),
-            num_moves: 0
+            num_moves: num_moves,
+            player1_time: player1_time,
+            player2_time: player2_time
         };
+
+        println!("{}", result);
+
+        return result;
     }
 }

@@ -93,7 +93,7 @@ pub fn simulate<G: core::Game + PlaygroundUtils>(
                     println!("Player 2's turn...");
                 }
                 let action = p2_strat.select_action(game, &state);
-                player2_time = player1_time + (start.elapsed());
+                player2_time = player2_time + (start.elapsed());
                 num_moves = num_moves + 1;
                 action
             }

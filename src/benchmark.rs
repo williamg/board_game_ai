@@ -90,7 +90,7 @@ where
         for iter in 0..test.iterations {
             let result = simulate(self, &(*p1_strat), &(*p2_strat), false);
             let p1_avg_move_time = result.player1_time.as_millis() / result.num_moves as u128;
-            let p2_avg_move_time = result.player1_time.as_millis() / result.num_moves as u128;
+            let p2_avg_move_time = result.player2_time.as_millis() / result.num_moves as u128;
 
             let i = iter as u128;
             p1_stats.avg_move_time = ((p1_stats.avg_move_time * i) + p1_avg_move_time) / (i + 1);

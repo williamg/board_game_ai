@@ -3,10 +3,17 @@ use std::time;
 
 use serde_json::Value;
 
-#[derive(PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone, Copy)]
 pub enum Player {
     Player1,
     Player2,
+}
+
+pub fn other_player(player: Player) -> Player {
+    match player {
+        Player::Player1 => return Player::Player2,
+        Player::Player2 => return Player::Player1,
+    }
 }
 
 #[derive(PartialEq, Eq, Clone)]
@@ -30,7 +37,7 @@ impl fmt::Display for GameStatus {
 
 pub trait Game {
     type State;
-    type Action;
+    type Action: Clone;
 
     // Basic game functions
     fn name(&self) -> String;

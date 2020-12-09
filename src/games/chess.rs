@@ -14,7 +14,7 @@ pub struct ChessState {
     pub num_moves: u8,
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone)]
 pub struct ChessAction {
     pub chess_move: ChessMove,
 }

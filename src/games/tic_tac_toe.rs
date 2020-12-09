@@ -2,6 +2,7 @@ use std::fmt;
 use std::io;
 
 use crate::core;
+use crate::core::Game;
 use crate::playground;
 use crate::strategy;
 
@@ -30,7 +31,7 @@ pub struct TicTacToeState {
     pub player: core::Player,
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone)]
 pub struct TicTacToeAction {
     pub cell: u8,
 }
@@ -85,11 +86,7 @@ impl core::Game for TicTacToe {
         };
         let mut new_state = state.clone();
         new_state.board[action.cell as usize] = val;
-        new_state.player = if state.player == core::Player::Player1 {
-            core::Player::Player2
-        } else {
-            core::Player::Player1
-        };
+        new_state.player = core::other_player(state.player);
 
         return new_state;
     }
@@ -159,6 +156,25 @@ impl core::ActionParser for TicTacToeParser {
     }
 }
 
+pub struct TicTacToeHeuristic {}
+
+impl strategy::Heuristic<TicTacToe> for TicTacToeHeuristic {
+    fn evaluate(&self, game: &TicTacToe, state: &TicTacToeState, player: core::Player) -> f64 {
+        // Score is the number of ways player has to win, or infinity if the player has won
+        match (game.status(state), player) {
+            (core::GameStatus::Player1Win, core::Player::Player1) => return f64::INFINITY,
+            (core::GameStatus::Player2Win, core::Player::Player2) => return f64::INFINITY,
+            (core::GameStatus::Player2Win, core::Player::Player1) => return f64::NEG_INFINITY,
+            (core::GameStatus::Player1Win, core::Player::Player2) => return f64::NEG_INFINITY,
+            (core::GameStatus::Draw, _) => return 1.0,
+            _ => (),
+        }
+
+        // Count the number of ways we can win
+        return 0.0;
+    }
+}
+
 impl playground::PlaygroundUtils for TicTacToe {
     fn strategies(&self) -> Vec<Box<dyn core::Strategy<Self>>> {
         return vec![
@@ -166,6 +182,10 @@ impl playground::PlaygroundUtils for TicTacToe {
                 parser: TicTacToeParser {},
             }),
             Box::new(strategy::RandomStrategy {}),
+            Box::new(strategy::MinMaxStrategy {
+                heuristic: Box::new(TicTacToeHeuristic {}),
+                search_depth: 10,
+            }),
         ];
     }
 

@@ -6,3 +6,6 @@ pub use random::*;
 
 mod uci;
 pub use self::uci::*;
+
+mod minmax;
+pub use self::minmax::*;

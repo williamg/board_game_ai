@@ -185,6 +185,12 @@ impl playground::PlaygroundUtils for TicTacToe {
             Box::new(strategy::MinMaxStrategy {
                 heuristic: Box::new(TicTacToeHeuristic {}),
                 search_depth: 10,
+                alpha_beta: false,
+            }),
+            Box::new(strategy::MinMaxStrategy {
+                heuristic: Box::new(TicTacToeHeuristic {}),
+                search_depth: 10,
+                alpha_beta: true,
             }),
         ];
     }

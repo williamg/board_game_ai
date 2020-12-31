@@ -1,5 +1,6 @@
 use crate::core;
 use crate::games;
+use std::panic;
 
 extern crate uci;
 
@@ -8,10 +9,16 @@ pub struct UCIStrategy {
 }
 
 impl UCIStrategy {
-    pub fn new() -> UCIStrategy {
-        let engine = uci::Engine::new("stockfish").unwrap();
+    pub fn new() -> Option<UCIStrategy> {
+        let e = panic::catch_unwind(|| {
+            return uci::Engine::new("stockfish").unwrap();
+        });
 
-        return UCIStrategy { engine: engine };
+        if let Ok(engine) = e {
+            return Some(UCIStrategy { engine: engine });
+        }
+
+        return None;
     }
 }
 

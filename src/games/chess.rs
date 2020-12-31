@@ -288,12 +288,11 @@ impl strategy::Heuristic<Chess> for ChessHeuristic {
 
 impl playground::PlaygroundUtils for Chess {
     fn strategies(&self) -> Vec<Box<dyn core::Strategy<Self>>> {
-        return vec![
+        let mut strats: Vec<Box<dyn core::Strategy<Self>>> = vec![
             Box::new(strategy::HumanStrategy {
                 parser: ChessParser {},
             }),
             Box::new(strategy::RandomStrategy {}),
-            //Box::new(strategy::UCIStrategy::new()),
             Box::new(strategy::MinMaxStrategy {
                 heuristic: Box::new(ChessHeuristic {}),
                 search_depth: 3,
@@ -305,6 +304,12 @@ impl playground::PlaygroundUtils for Chess {
                 alpha_beta: true,
             }),
         ];
+
+        if let Some(e) = strategy::UCIStrategy::new() {
+            strats.push(Box::new(e));
+        }
+
+        return strats;
     }
 
     fn serialize_state(&self, state: &ChessState) -> String {

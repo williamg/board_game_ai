@@ -1,6 +1,7 @@
-use chess::{Board, BoardStatus, ChessMove, Color, MoveGen, Piece, Square};
+use chess::{Board, BoardStatus, ChessMove, Color, File, MoveGen, Piece, Rank, Square};
 
 use crate::core;
+use crate::core::Game;
 use crate::playground;
 use crate::strategy;
 
@@ -219,6 +220,72 @@ impl core::ActionParser for ChessParser {
     }
 }
 
+pub struct ChessHeuristic {}
+
+impl strategy::Heuristic<Chess> for ChessHeuristic {
+    fn evaluate(&self, game: &Chess, state: &ChessState, player: core::Player) -> f64 {
+        // Score is the number of ways player has to win, or infinity if the player has won
+        match (game.status(state), player) {
+            (core::GameStatus::Player1Win, core::Player::Player1) => return f64::INFINITY,
+            (core::GameStatus::Player2Win, core::Player::Player2) => return f64::INFINITY,
+            (core::GameStatus::Player2Win, core::Player::Player1) => return f64::NEG_INFINITY,
+            (core::GameStatus::Player1Win, core::Player::Player2) => return f64::NEG_INFINITY,
+            (core::GameStatus::Draw, _) => return 1.0,
+            _ => (),
+        }
+
+        let mut white_material = 0;
+        let mut black_material = 0;
+
+        // Count difference between our material score and opponent's material score
+        for i in 0..64 {
+            let square =
+                Square::make_square(Rank::from_index(i % 8), File::from_index((i - i % 8) / 8));
+            let color = state.board.color_on(square);
+
+            if color == None {
+                continue;
+            }
+
+            let score_var = if color == Some(Color::White) {
+                &mut white_material
+            } else {
+                &mut black_material
+            };
+
+            match state.board.piece_on(square) {
+                Some(Piece::Pawn) => *score_var += 1,
+                Some(Piece::Bishop) => *score_var += 3,
+                Some(Piece::Knight) => *score_var += 3,
+                Some(Piece::Rook) => *score_var += 5,
+                Some(Piece::Queen) => *score_var += 9,
+                _ => continue,
+            }
+        }
+
+        let checkers = state.board.checkers().popcnt();
+        let black_checkers = if game.player(state) == core::Player::Player1 {
+            checkers
+        } else {
+            0
+        };
+        let white_checkers = if game.player(state) == core::Player::Player2 {
+            checkers
+        } else {
+            0
+        };
+
+        let white_score = ((white_material + white_checkers) as i32
+            - (black_material + black_checkers) as i32) as f64;
+
+        if player == core::Player::Player1 {
+            return white_score;
+        } else {
+            return -white_score;
+        }
+    }
+}
+
 impl playground::PlaygroundUtils for Chess {
     fn strategies(&self) -> Vec<Box<dyn core::Strategy<Self>>> {
         return vec![
@@ -226,7 +293,17 @@ impl playground::PlaygroundUtils for Chess {
                 parser: ChessParser {},
             }),
             Box::new(strategy::RandomStrategy {}),
-            Box::new(strategy::UCIStrategy::new()),
+            //Box::new(strategy::UCIStrategy::new()),
+            Box::new(strategy::MinMaxStrategy {
+                heuristic: Box::new(ChessHeuristic {}),
+                search_depth: 3,
+                alpha_beta: false,
+            }),
+            Box::new(strategy::MinMaxStrategy {
+                heuristic: Box::new(ChessHeuristic {}),
+                search_depth: 3,
+                alpha_beta: true,
+            }),
         ];
     }
 

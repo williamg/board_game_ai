@@ -303,6 +303,7 @@ impl playground::PlaygroundUtils for Chess {
                 search_depth: 3,
                 alpha_beta: true,
             }),
+            Box::new(strategy::MCTSStrategy {}),
         ];
 
         if let Some(e) = strategy::UCIStrategy::new() {

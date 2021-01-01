@@ -192,6 +192,7 @@ impl playground::PlaygroundUtils for TicTacToe {
                 search_depth: 10,
                 alpha_beta: true,
             }),
+            Box::new(strategy::MCTSStrategy {}),
         ];
     }
 

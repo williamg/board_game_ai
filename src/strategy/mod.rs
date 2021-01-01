@@ -9,3 +9,6 @@ pub use self::uci::*;
 
 mod minmax;
 pub use self::minmax::*;
+
+mod mcts;
+pub use self::mcts::*;

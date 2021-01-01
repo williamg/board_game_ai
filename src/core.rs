@@ -36,8 +36,8 @@ impl fmt::Display for GameStatus {
 }
 
 pub trait Game {
-    type State;
-    type Action: Clone;
+    type State: Clone;
+    type Action: Clone + Eq;
 
     // Basic game functions
     fn name(&self) -> String;
